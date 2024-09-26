@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  email      String   @db.VarChar(150)
+  password   String   @db.VarChar(250)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  family        Family?      @relation(fields: [family_id], references: [id])
+  family_id     String?
+  tasks         Task[]
+  user_families UserFamily[]
+
+  @@map("users")
+}
+
+model Category {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(30)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  family    Family   @relation(fields: [family_id], references: [id])
+  family_id String
+  sectors   Sector[]
+
+  @@map("categories")
+}
+
+model Sector {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(30)
+  color      String   @default("#2396C0") @db.VarChar(30)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  category    Category @relation(fields: [category_id], references: [id])
+  category_id Int
+  tasks       Task[]
+
+  @@map("sectors")
+}
+
+model Unit {
+  id           Int      @id @default(autoincrement())
+  abbreviation String   @db.VarChar(5)
+  name         String   @db.VarChar(30)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now())
+  tasks        Task[]
+
+  @@map("units")
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  description String   @db.VarChar(250)
+  qty         Int
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  sector    Sector @relation(fields: [sector_id], references: [id])
+  unit      Unit   @relation(fields: [unit_id], references: [id])
+  user      User   @relation(fields: [user_id], references: [id])
+  sector_id Int
+  unit_id   Int
+  user_id   Int
+
+  @@map("tasks")
+}
+
+model Family {
+  id            String       @id @default(uuid())
+  name          String       @db.VarChar(250)
+  created_at    DateTime?    @default(now())
+  updated_at    DateTime?    @default(now())
+  user_families UserFamily[]
+  users         User[]
+  categories    Category[]
+
+  @@map("families")
+}
+
+model UserFamily {
+  id Int @id @default(autoincrement())
+
+  family    Family @relation(fields: [family_id], references: [id])
+  user      User   @relation(fields: [user_id], references: [id])
+  family_id String
+  user_id   Int
+
+  @@map("user_families")
+}
